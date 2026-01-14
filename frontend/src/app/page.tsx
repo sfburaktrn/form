@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface FormData {
@@ -75,18 +75,46 @@ export default function Home() {
     setIsSuccess(false);
   };
 
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   // Step validation
   const step1DamperComplete = formData.brand !== '' && formData.model !== '';
   const step2DamperComplete = formData.cargoType !== '';
   const step3DamperComplete = formData.volumeM3 !== '' && formData.thickness !== '';
 
-  const step1DorseComplete = formData.volumeM3 !== '' && formData.thickness !== '';
+  const step1DorseComplete = formData.volumeM3 !== '';
+  const step2DorseComplete = formData.thickness !== '';
 
   const isContactValid = formData.companyName && formData.contactPhone && formData.email && formData.contactPerson;
 
   const isDamperValid = formData.type === 'damper' && step1DamperComplete && step2DamperComplete && step3DamperComplete && isContactValid;
-  const isDorseValid = formData.type === 'dorse' && step1DorseComplete && isContactValid;
+  const isDorseValid = formData.type === 'dorse' && step1DorseComplete && step2DorseComplete && isContactValid;
   const isFormValid = isDamperValid || isDorseValid;
+
+  // Auto-sync image with progress
+  useEffect(() => {
+    if (formData.type === 'damper') {
+      if (step2DamperComplete) setCurrentImageIndex(2);
+      else if (step1DamperComplete) setCurrentImageIndex(1);
+      else setCurrentImageIndex(0);
+    } else if (formData.type === 'dorse') {
+      if (step2DorseComplete) setCurrentImageIndex(2);
+      else if (step1DorseComplete) setCurrentImageIndex(1);
+      else setCurrentImageIndex(0);
+    }
+  }, [formData.type, step1DamperComplete, step2DamperComplete, step1DorseComplete, step2DorseComplete]);
+
+  const getCurrentImageSrc = () => {
+    if (formData.type === 'damper') {
+      if (currentImageIndex === 2) return '/damper-step-3.jpg';
+      if (currentImageIndex === 1) return '/damper-step-2.jpg';
+      return '/damper.jpg';
+    } else {
+      if (currentImageIndex === 2) return '/dorse-step-3.jpg';
+      if (currentImageIndex === 1) return '/dorse-step-2.jpg';
+      return '/dorse.jpg';
+    }
+  };
 
   // ==================== SIMPLE INITIAL SELECTION ====================
   if (!formData.type) {
@@ -111,6 +139,8 @@ export default function Home() {
     );
   }
 
+
+
   // ==================== CONFIGURATOR (SPLIT SCREEN) ====================
   return (
     <div className="split-container">
@@ -126,12 +156,25 @@ export default function Home() {
         </div>
 
         <Image
-          src={formData.type === 'damper' ? '/damper.jpg' : '/dorse.jpg'}
+          src={getCurrentImageSrc()}
           alt={formData.type}
           width={600}
           height={400}
           priority
+          className="product-image"
         />
+
+        {/* Navigation Dots */}
+        <div className="image-dots">
+          {[0, 1, 2].map((idx) => (
+            <button
+              key={idx}
+              className={`dot ${currentImageIndex === idx ? 'active' : ''}`}
+              onClick={() => setCurrentImageIndex(idx)}
+              aria-label={`View image step ${idx + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Right Side: Scrollable Form */}
@@ -207,18 +250,23 @@ export default function Home() {
               <>
                 <div className="step-section">
                   <div className="step-header">
-                    <h2>Dorse Ölçüleri</h2>
-                    <span className="step-description">hacim ve kalınlık tercihiniz</span>
+                    <h2>Dorse Hacmi</h2>
+                    <span className="step-description">istenen hacim</span>
                   </div>
-                  <div className="input-row">
-                    <div className="input-group">
-                      <label className="input-label">Hacim (m³)</label>
-                      <input type="text" className="input-field" placeholder="Örn: 30" value={formData.volumeM3} onChange={(e) => handleInputChange('volumeM3', e.target.value)} />
-                    </div>
-                    <div className="input-group">
-                      <label className="input-label">Taban/Yan (mm)</label>
-                      <input type="text" className="input-field" placeholder="Örn: 5mm / 4mm" value={formData.thickness} onChange={(e) => handleInputChange('thickness', e.target.value)} />
-                    </div>
+                  <div className="input-group">
+                    <label className="input-label">Hacim (m³)</label>
+                    <input type="text" className="input-field" placeholder="Örn: 30" value={formData.volumeM3} onChange={(e) => handleInputChange('volumeM3', e.target.value)} />
+                  </div>
+                </div>
+
+                <div className={`step-section ${!step1DorseComplete ? 'locked' : ''}`}>
+                  <div className="step-header">
+                    <h2>Dorse Kalınlığı</h2>
+                    <span className="step-description">taban ve yan duvar kalınlığı</span>
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Taban/Yan (mm)</label>
+                    <input type="text" className="input-field" placeholder="Örn: 5mm / 4mm" value={formData.thickness} onChange={(e) => handleInputChange('thickness', e.target.value)} disabled={!step1DorseComplete} />
                   </div>
                 </div>
               </>
@@ -233,23 +281,23 @@ export default function Home() {
               <div className="contact-grid">
                 <div className="input-group">
                   <label className="input-label">Firma Adı</label>
-                  <input type="text" className="input-field" placeholder="Firma Ünvanı" value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step1DorseComplete)} />
+                  <input type="text" className="input-field" placeholder="Firma Ünvanı" value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
                 </div>
                 <div className="input-group">
                   <label className="input-label">Yetkili Ad Soyad</label>
-                  <input type="text" className="input-field" placeholder="İsim Soyisim" value={formData.contactPerson} onChange={(e) => handleInputChange('contactPerson', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step1DorseComplete)} />
+                  <input type="text" className="input-field" placeholder="İsim Soyisim" value={formData.contactPerson} onChange={(e) => handleInputChange('contactPerson', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
                 </div>
                 <div className="input-group">
                   <label className="input-label">Telefon</label>
-                  <input type="tel" className="input-field" placeholder="05XX..." value={formData.contactPhone} onChange={(e) => handleInputChange('contactPhone', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step1DorseComplete)} />
+                  <input type="tel" className="input-field" placeholder="05XX..." value={formData.contactPhone} onChange={(e) => handleInputChange('contactPhone', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
                 </div>
                 <div className="input-group">
                   <label className="input-label">E-posta</label>
-                  <input type="email" className="input-field" placeholder="mail@ornek.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step1DorseComplete)} />
+                  <input type="email" className="input-field" placeholder="mail@ornek.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
                 </div>
                 <div className="input-group full-width">
                   <label className="input-label">Bizi Nereden Duydunuz?</label>
-                  <input type="text" className="input-field" placeholder="Google, Referans..." value={formData.heardFrom} onChange={(e) => handleInputChange('heardFrom', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step1DorseComplete)} />
+                  <input type="text" className="input-field" placeholder="Google, Referans..." value={formData.heardFrom} onChange={(e) => handleInputChange('heardFrom', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
                 </div>
               </div>
 

@@ -130,6 +130,34 @@ body {
   text-align: center;
 }
 
+.image-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d2d2d7;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.dot:hover {
+  background: #86868b;
+  transform: scale(1.1);
+}
+
+.dot.active {
+  background: #1d1d1f;
+  transform: scale(1.2);
+}
+
 .product-title {
   font-size: 40px;
   font-weight: 600;
@@ -213,7 +241,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(245, 245, 247, 0.85);
+  background: rgba(245, 245, 247, 0.3);
   /* Slightly stronger fade */
   z-index: 10;
   backdrop-filter: blur(2px);

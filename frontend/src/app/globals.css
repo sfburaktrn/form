@@ -115,7 +115,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 40px;
-  background: var(--apple-bg-secondary);
+  background: var(--apple-bg);
   border-right: 1px solid #e8e8ed;
 }
 
@@ -171,7 +171,7 @@ body {
   width: 50%;
   min-height: 100vh;
   padding: 80px 60px;
-  background: var(--apple-bg);
+  background: var(--apple-bg-secondary);
   overflow-y: auto;
 }
 
@@ -213,7 +213,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(245, 245, 247, 0.85);
   /* Slightly stronger fade */
   z-index: 10;
   backdrop-filter: blur(2px);

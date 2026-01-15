@@ -24,6 +24,7 @@ interface Quote {
     contactPhone: string;
     email: string;
     contactPerson: string;
+    paymentMethod: string;
     heardFrom?: string;
     createdAt: string;
 }
@@ -42,6 +43,7 @@ interface QuoteRequest {
     contactPhone: string;
     email: string;
     contactPerson: string;
+    paymentMethod: string;
     heardFrom?: string;
 }
 
@@ -61,6 +63,7 @@ app.post('/api/quote', (req: Request<{}, {}, QuoteRequest>, res: Response) => {
             contactPhone,
             email,
             contactPerson,
+            paymentMethod,
             heardFrom
         } = req.body;
 
@@ -86,6 +89,7 @@ app.post('/api/quote', (req: Request<{}, {}, QuoteRequest>, res: Response) => {
             contactPhone,
             email,
             contactPerson,
+            paymentMethod: paymentMethod || 'Belirtilmedi',
             heardFrom,
             createdAt: new Date().toISOString()
         };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 
 interface FormData {
@@ -15,6 +15,7 @@ interface FormData {
   email: string;
   contactPerson: string;
   heardFrom: string;
+  paymentMethod: string;
 }
 
 const initialFormData: FormData = {
@@ -29,6 +30,7 @@ const initialFormData: FormData = {
   email: '',
   contactPerson: '',
   heardFrom: '',
+  paymentMethod: '',
 };
 
 export default function Home() {
@@ -75,6 +77,14 @@ export default function Home() {
     setIsSuccess(false);
   };
 
+
+  // Refs for auto-scroll
+  const damperStep2Ref = useRef<HTMLDivElement>(null);
+  const damperStep3Ref = useRef<HTMLDivElement>(null);
+  const dorseStep2Ref = useRef<HTMLDivElement>(null);
+  const paymentRef = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLDivElement>(null);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Step validation
@@ -85,10 +95,11 @@ export default function Home() {
   const step1DorseComplete = formData.volumeM3 !== '';
   const step2DorseComplete = formData.thickness !== '';
 
+  const isPaymentValid = formData.paymentMethod !== '';
   const isContactValid = formData.companyName && formData.contactPhone && formData.email && formData.contactPerson;
 
-  const isDamperValid = formData.type === 'damper' && step1DamperComplete && step2DamperComplete && step3DamperComplete && isContactValid;
-  const isDorseValid = formData.type === 'dorse' && step1DorseComplete && step2DorseComplete && isContactValid;
+  const isDamperValid = formData.type === 'damper' && step1DamperComplete && step2DamperComplete && step3DamperComplete && isPaymentValid && isContactValid;
+  const isDorseValid = formData.type === 'dorse' && step1DorseComplete && step2DorseComplete && isPaymentValid && isContactValid;
   const isFormValid = isDamperValid || isDorseValid;
 
   // Auto-sync image with progress
@@ -103,6 +114,43 @@ export default function Home() {
       else setCurrentImageIndex(0);
     }
   }, [formData.type, step1DamperComplete, step2DamperComplete, step1DorseComplete, step2DorseComplete]);
+
+  // Auto-scroll effects
+  useEffect(() => {
+    if (step1DamperComplete && formData.type === 'damper') {
+      damperStep2Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [step1DamperComplete, formData.type]);
+
+  useEffect(() => {
+    if (step2DamperComplete && formData.type === 'damper') {
+      damperStep3Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [step2DamperComplete, formData.type]);
+
+  useEffect(() => {
+    if (step3DamperComplete && formData.type === 'damper') {
+      paymentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [step3DamperComplete, formData.type]);
+
+  useEffect(() => {
+    if (step1DorseComplete && formData.type === 'dorse') {
+      dorseStep2Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [step1DorseComplete, formData.type]);
+
+  useEffect(() => {
+    if (step2DorseComplete && formData.type === 'dorse') {
+      paymentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [step2DorseComplete, formData.type]);
+
+  useEffect(() => {
+    if (isPaymentValid) {
+      contactRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isPaymentValid]);
 
   const getCurrentImageSrc = () => {
     if (formData.type === 'damper') {
@@ -216,7 +264,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className={`step-section ${!step1DamperComplete ? 'locked' : ''}`}>
+                <div className={`step-section ${!step1DamperComplete ? 'locked' : ''}`} ref={damperStep2Ref}>
                   <div className="step-header">
                     <h2>Taşınacak Yük</h2>
                     <span className="step-description">araç ne taşıyacak?</span>
@@ -226,7 +274,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className={`step-section ${!step2DamperComplete ? 'locked' : ''}`}>
+                <div className={`step-section ${!step2DamperComplete ? 'locked' : ''}`} ref={damperStep3Ref}>
                   <div className="step-header">
                     <h2>Kasa Ölçüleri</h2>
                     <span className="step-description">hacim ve kalınlık</span>
@@ -259,7 +307,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className={`step-section ${!step1DorseComplete ? 'locked' : ''}`}>
+                <div className={`step-section ${!step1DorseComplete ? 'locked' : ''}`} ref={dorseStep2Ref}>
                   <div className="step-header">
                     <h2>Dorse Kalınlığı</h2>
                     <span className="step-description">taban ve yan duvar kalınlığı</span>
@@ -272,8 +320,63 @@ export default function Home() {
               </>
             )}
 
+            {/* PAYMENT METHOD SECTION - NEW */}
+            <div className={`step-section ${((formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)) ? 'locked' : ''}`} ref={paymentRef}>
+              <div className="step-header">
+                <h2>Ödeme Seçeneği</h2>
+                <span className="step-description">ödeme tercihiniz</span>
+              </div>
+              <div className="input-row">
+                <div
+                  className={`payment-option ${formData.paymentMethod === 'pesin' ? 'selected' : ''}`}
+                  onClick={() => ((formData.type === 'damper' && step3DamperComplete) || (formData.type === 'dorse' && step2DorseComplete)) && handleInputChange('paymentMethod', 'pesin')}
+                  style={{
+                    flex: 1,
+                    padding: '15px',
+                    border: formData.paymentMethod === 'pesin' ? '2px solid #0071e3' : '1px solid #d2d2d7',
+                    borderRadius: '12px',
+                    cursor: ((formData.type === 'damper' && step3DamperComplete) || (formData.type === 'dorse' && step2DorseComplete)) ? 'pointer' : 'not-allowed',
+                    backgroundColor: formData.paymentMethod === 'pesin' ? '#f5fafe' : 'white',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px',
+                    transition: 'all 0.2s',
+                    opacity: ((formData.type === 'damper' && step3DamperComplete) || (formData.type === 'dorse' && step2DorseComplete)) ? 1 : 0.6
+                  }}
+                >
+                  <span style={{ fontWeight: '600', fontSize: '16px' }}>Peşin Ödeme</span>
+                  <span style={{ fontSize: '13px', color: '#6e6e73' }}>Nakit / Havale</span>
+                </div>
+
+                <div
+                  className={`payment-option ${formData.paymentMethod === 'vadeli' ? 'selected' : ''}`}
+                  onClick={() => ((formData.type === 'damper' && step3DamperComplete) || (formData.type === 'dorse' && step2DorseComplete)) && handleInputChange('paymentMethod', 'vadeli')}
+                  style={{
+                    flex: 1,
+                    padding: '15px',
+                    border: formData.paymentMethod === 'vadeli' ? '2px solid #0071e3' : '1px solid #d2d2d7',
+                    borderRadius: '12px',
+                    cursor: ((formData.type === 'damper' && step3DamperComplete) || (formData.type === 'dorse' && step2DorseComplete)) ? 'pointer' : 'not-allowed',
+                    backgroundColor: formData.paymentMethod === 'vadeli' ? '#f5fafe' : 'white',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px',
+                    transition: 'all 0.2s',
+                    opacity: ((formData.type === 'damper' && step3DamperComplete) || (formData.type === 'dorse' && step2DorseComplete)) ? 1 : 0.6
+                  }}
+                >
+                  <span style={{ fontWeight: '600', fontSize: '16px' }}>Vadeli Ödeme</span>
+                  <span style={{ fontSize: '13px', color: '#6e6e73' }}>Çek / Senet</span>
+                </div>
+              </div>
+            </div>
+
             {/* CONTACT INFO (Shared) */}
-            <div className={`step-section ${((formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step1DorseComplete)) ? 'locked' : ''}`}>
+            <div className={`step-section ${!isPaymentValid ? 'locked' : ''}`} ref={contactRef}>
               <div className="step-header">
                 <h2>İletişim Bilgileri</h2>
                 <span className="step-description">size ulaşmamız için</span>
@@ -281,23 +384,23 @@ export default function Home() {
               <div className="contact-grid">
                 <div className="input-group">
                   <label className="input-label">Firma Adı</label>
-                  <input type="text" className="input-field" placeholder="Firma Ünvanı" value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
+                  <input type="text" className="input-field" placeholder="Firma Ünvanı" value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} disabled={!isPaymentValid} />
                 </div>
                 <div className="input-group">
                   <label className="input-label">Yetkili Ad Soyad</label>
-                  <input type="text" className="input-field" placeholder="İsim Soyisim" value={formData.contactPerson} onChange={(e) => handleInputChange('contactPerson', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
+                  <input type="text" className="input-field" placeholder="İsim Soyisim" value={formData.contactPerson} onChange={(e) => handleInputChange('contactPerson', e.target.value)} disabled={!isPaymentValid} />
                 </div>
                 <div className="input-group">
                   <label className="input-label">Telefon</label>
-                  <input type="tel" className="input-field" placeholder="05XX..." value={formData.contactPhone} onChange={(e) => handleInputChange('contactPhone', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
+                  <input type="tel" className="input-field" placeholder="05XX..." value={formData.contactPhone} onChange={(e) => handleInputChange('contactPhone', e.target.value)} disabled={!isPaymentValid} />
                 </div>
                 <div className="input-group">
                   <label className="input-label">E-posta</label>
-                  <input type="email" className="input-field" placeholder="mail@ornek.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
+                  <input type="email" className="input-field" placeholder="mail@ornek.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} disabled={!isPaymentValid} />
                 </div>
                 <div className="input-group full-width">
                   <label className="input-label">Bizi Nereden Duydunuz?</label>
-                  <input type="text" className="input-field" placeholder="Google, Referans..." value={formData.heardFrom} onChange={(e) => handleInputChange('heardFrom', e.target.value)} disabled={(formData.type === 'damper' && !step3DamperComplete) || (formData.type === 'dorse' && !step2DorseComplete)} />
+                  <input type="text" className="input-field" placeholder="Google, Referans..." value={formData.heardFrom} onChange={(e) => handleInputChange('heardFrom', e.target.value)} disabled={!isPaymentValid} />
                 </div>
               </div>
 
@@ -306,6 +409,7 @@ export default function Home() {
                 <div className="submit-summary">
                   Seçiminiz: <strong>{formData.type === 'damper' ? 'Damper' : 'Dorse'}</strong>
                   {formData.volumeM3 && <> • <strong>{formData.volumeM3} m³</strong></>}
+                  {formData.paymentMethod && <> • <strong>{formData.paymentMethod === 'pesin' ? 'Peşin' : 'Vadeli'}</strong></>}
                 </div>
                 <button
                   className="btn-primary"

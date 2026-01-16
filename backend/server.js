@@ -25,6 +25,7 @@ app.post('/api/quote', (req, res) => {
       cargoType,
       thickness,
       volumeM3,
+      quantity, // adet
       companyName,
       contactPhone,
       email,
@@ -49,6 +50,7 @@ app.post('/api/quote', (req, res) => {
       cargoType: type === 'damper' ? cargoType : null,
       thickness,
       volumeM3,
+      quantity: quantity || '1',
       companyName,
       contactPhone,
       email,
@@ -87,7 +89,7 @@ app.get('/api/quotes', (req, res) => {
 // GET - Tek bir teklifi getir
 app.get('/api/quote/:id', (req, res) => {
   const quote = quotes.find(q => q.id === parseInt(req.params.id));
-  
+
   if (!quote) {
     return res.status(404).json({
       success: false,

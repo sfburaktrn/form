@@ -16,6 +16,7 @@ interface FormData {
   contactPerson: string;
   heardFrom: string;
   paymentMethod: string;
+  quantity: string;
 }
 
 const initialFormData: FormData = {
@@ -31,6 +32,7 @@ const initialFormData: FormData = {
   contactPerson: '',
   heardFrom: '',
   paymentMethod: '',
+  quantity: '1',
 };
 
 export default function Home() {
@@ -232,7 +234,7 @@ export default function Home() {
           <div className="success-content" style={{ textAlign: 'center', padding: '100px 0' }}>
             <div className="success-icon" style={{ margin: '0 auto 20px', width: '80px', height: '80px', background: '#34c759', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px' }}>✓</div>
             <h2 style={{ fontSize: '32px', marginBottom: '10px' }}>Teşekkürler!</h2>
-            <p style={{ color: '#6e6e73', marginBottom: '30px' }}>Teklifiniz alındı, en kısa sürede dönüş yapacağız.</p>
+            <p style={{ color: '#6e6e73', marginBottom: '30px' }}>Talebiniz alındı, en kısa sürede dönüş yapacağız.</p>
             <button className="btn-link" onClick={handleReset} style={{ color: '#0071e3', background: 'none', border: 'none', fontSize: '17px', cursor: 'pointer' }}>
               Yeni Form Oluştur
             </button>
@@ -289,6 +291,10 @@ export default function Home() {
                       <input type="text" className="input-field" placeholder="Örn: 8mm / 6mm" value={formData.thickness} onChange={(e) => handleInputChange('thickness', e.target.value)} disabled={!step2DamperComplete} />
                     </div>
                   </div>
+                  <div className="input-group" style={{ marginTop: '15px' }}>
+                    <label className="input-label">Adet</label>
+                    <input type="text" className="input-field" placeholder="1" value={formData.quantity} onChange={(e) => handleInputChange('quantity', e.target.value)} disabled={!step2DamperComplete} />
+                  </div>
                 </div>
               </>
             )}
@@ -315,6 +321,10 @@ export default function Home() {
                   <div className="input-group">
                     <label className="input-label">Taban/Yan (mm)</label>
                     <input type="text" className="input-field" placeholder="Örn: 5mm / 4mm" value={formData.thickness} onChange={(e) => handleInputChange('thickness', e.target.value)} disabled={!step1DorseComplete} />
+                  </div>
+                  <div className="input-group" style={{ marginTop: '15px' }}>
+                    <label className="input-label">Adet</label>
+                    <input type="text" className="input-field" placeholder="1" value={formData.quantity} onChange={(e) => handleInputChange('quantity', e.target.value)} disabled={!step1DorseComplete} />
                   </div>
                 </div>
               </>
@@ -409,6 +419,7 @@ export default function Home() {
                 <div className="submit-summary">
                   Seçiminiz: <strong>{formData.type === 'damper' ? 'Damper' : 'Dorse'}</strong>
                   {formData.volumeM3 && <> • <strong>{formData.volumeM3} m³</strong></>}
+                  {formData.quantity && <> • <strong>{formData.quantity} Adet</strong></>}
                   {formData.paymentMethod && <> • <strong>{formData.paymentMethod === 'pesin' ? 'Peşin' : 'Vadeli'}</strong></>}
                 </div>
                 <button
